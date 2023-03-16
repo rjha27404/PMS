@@ -1,0 +1,10 @@
+DELIMITER $$
+CREATE EVENT `Every_5_Minutes_Cleanup`
+  ON SCHEDULE EVERY 5 MINUTE STARTS '2015-09-01 00:00:00'
+  ON COMPLETION PRESERVE
+DO BEGIN
+   delete from token 
+   where TIMESTAMPDIFF(HOUR, updateDt, now())>168; -- messages over 1 week old (168 hours)
+   -- etc etc all your stuff in here
+END;$$
+DELIMITER ;

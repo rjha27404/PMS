@@ -1,0 +1,32 @@
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation"
+            style="background-color: black;height: 80px;">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand text-white" href="/admin"
+                    style="margin-left: 4rem;font-size: 40px;font-weight: bolder;color: white;"><span><img id="logo"
+                            src="/assets/images/logo.jpeg" alt="manfacturer" style="height: 40px;
+                border-radius: 90px;"></span>&nbsp;<span>PMS</span></a>
+            </div>
+            <!-- Top Menu Items -->
+            <ul class="nav navbar-right top-nav">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="padding-top: 30px;color:white;"><i class="fa fa-user"></i> Welcome, <%=
+                            user.Email %> <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="/admin/logout"><i class="fa fa-fw fa-power-off"></i> Log Out</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
