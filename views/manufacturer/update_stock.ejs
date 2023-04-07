@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> Add Product </title>
+    <link rel="stylesheet" href="/assets/main_style.css">
+</head>
+
+<body>
+    <%- include('../includes/header.ejs') %>
+        <%- include('../includes/nav_manufacturer') %>
+            <%- include('../includes/aside_manufacturer') %>
+                <section>
+                    <h1>Edit Product</h1>
+                    <form action="/manufacturer/manage_stock/edit/<%= product.pro_id %>" method="POST" class="form">
+                        <ul class="form-list">
+                            <li>
+                                <div class="label-block"> <label for="product:name">Product ID</label> </div>
+                                <div class="input-box"> <input type="text" id="product:name" name="pro_id"
+                                        placeholder="Product Name" value="<%= product.pro_id %>" required /> </div>
+                                <span class="error_message">
+
+                                </span>
+                            </li>
+                            <li>
+                                <div class="label-block"> <label for="product:name">Product Name</label> </div>
+                                <div class="input-box"> <input type="text" id="product:name" name="name" placeholder="Product Name"
+                                        value="<%= product.pro_name %>" required /> </div>
+                                <span class="error_message">
+                            
+                                </span>
+                            </li>
+                            <li>
+                                <div class="label-block"> <label for="product:price">Quantity</label> </div>
+                                <div class="input-box"> <input type="text" id="product:price" name="quantity"
+                                        placeholder="Price" value="<%= product.quantity %>" required /> </div> <span
+                                    class="error_message">
+
+                                </span>
+                            </li>
+                            
+                            <li>
+                                <input type="submit" value="Update Stock" class="submit_button" /> <span
+                                    class="error_message"> </span>
+                            </li>
+                        </ul>
+                    </form>
+                </section>
+                <%- include('../includes/footer.ejs') %>
+</body>
+
+</html>

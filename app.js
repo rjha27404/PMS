@@ -9,8 +9,12 @@ var mysql = require("mysql2");
 var async = require("async");
 const sendMail = require("./emailService");
 var admin = require("./routes/admin");
+var retailer = require("./routes/retailer");
+var register = require("./routes/register");
+var manufacturer = require("./routes/manufacturer");
 var app = express();
 var jwt = require("jsonwebtoken");
+const { log } = require("console");
 require("dotenv").config();
 //configuration
 app.set("views", path.join(__dirname, "views"));
@@ -42,7 +46,7 @@ var connection = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "root",
-  database: "pharmacy",
+  database: "supply_chain_mgmt",
 });
 
 connection.connect();
@@ -65,13 +69,14 @@ app.get("/search", function (req, res) {
 
 // Routes
 app.get("/", function (req, res) {
-  res.render("view_login", {
+  res.render("index", {
     title: "Login Panel",
     message: "",
     message_type: "",
     errors: "",
   });
 });
+app.use("/register", register);
 app.get("/admin/forgot-password", (req, res) => {
   res.render("view_password_reset.ejs", {
     title: "Forgot Password Panel",
@@ -148,14 +153,16 @@ app.post("/admin/forget-password-url", (req, res) => {
 
 
 app.post("/login", function (req, res) {
-  console.log("HEY You");
+  // console.log(req.body.login_type);
+  // console.log("HEY You");
   //login validations
-  req.checkBody("email", "Email is required").notEmpty();
+  req.checkBody("username", "txtUsername is required").notEmpty();
   req.checkBody("password", "Password is required").notEmpty();
 
   req.getValidationResult().then(function (result) {
     if (!result.isEmpty()) {
-      res.render("view_login", {
+      console.log(req.body.username);
+      res.render("index", {
         title: "Login Panel",
         message: "",
         message_type: "",
@@ -164,132 +171,132 @@ app.post("/login", function (req, res) {
       });
     } else {
       var user = {
-        Email: req.body.email,
-        Password: req.body.password,
+        username: req.body.username,
+        password: req.body.password,
         UserType: "",
       };
-
-      var query =
-        "SELECT * FROM user_access WHERE email = ? AND password = ?";
-      db.getData(query, [user.Email, user.Password], function (rows) {
+      const UserType=req.body.login_type;
+      console.log(UserType == "Admin");
+      console.log(UserType);
+      var query_admin =
+        "SELECT * FROM admin WHERE username = ? AND password = ?";
+      var query_distributor =
+        "SELECT * FROM retailer WHERE username = ? AND password = ?";
+      var query_supplier =
+        "SELECT * FROM manufacturer WHERE username = ? AND password = ?";
+      
+      if (UserType == "admin"){
+        db.getData(query_admin, [user.username, user.password], function (rows) {
+            // console.log(rows[0]);
+          
+            if (!rows[0]) {
+              res.render("index", {
+                title: "User Login",
+                message: "Login Failed! Enter Correct Infromatins.",
+                message_type: "alert-danger",
+                errors: "",
+              });
+            } else {
+                user.UserType = "admin";
+                req.session.loggedUser = user;
+                console.log("Hello Admin");
+                res.redirect("/admin");
+            }
+          });
+      } else if (UserType == "retailer"){
+        db.getData(query_distributor, [user.username, user.password], function (rows) {
+            // console.log(rows[0]);
+            if (!rows[0]) {
+              res.render("index", {
+                title: "User Login",
+                message: "Login Failed! Enter Correct Infromatins.",
+                message_type: "alert-danger",
+                errors: "",
+              });
+            } else {
+                user.UserType = "retailer";
+                req.session.loggedUser = user;
+              res.redirect("/retailer");
+            }
+          });
+        }else{
+        db.getData(query_supplier, [user.username, user.password], function (rows) {
         // console.log(rows[0]);
         if (!rows[0]) {
-          res.render("view_login", {
+          res.render("index", {
             title: "User Login",
             message: "Login Failed! Enter Correct Infromatins.",
             message_type: "alert-danger",
             errors: "",
           });
         } else {
-          if (rows[0].Usertype == "Admin") {
-            user.UserType = "Admin";
+            user.UserType = "manufacturer";
             req.session.loggedUser = user;
-
-            res.redirect("/admin");
-          } else if (rows[0].Usertype == "Staff") {
-            user.UserType = "Staff";
-            req.session.loggedUser = user;
-
-            res.redirect("/admin");
-          }
+            res.redirect("/manufacturer");
         }
       });
+        }
+      
     } // validation end
   });
 });
+app.get('/user/create', function (req, res) {
 
-app.get("/admin", function (req, res) {
-  if (!req.session.loggedUser) {
-    res.redirect("/");
-    return;
+  //staff checking
+  // check_staff(req, res);
+
+  var data = {
+      'user': req.session.loggedUser
   }
-
-  // IMPORTANT ROUTING NOTE ******************************
-  // add the below code in admin.js => router.get('/')  **
-  // exectly same code needs there to work properly     **
-  // *****************************************************
-
-  var connection = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root",
-    database: "pharmacy",
-  });
-
-  var totalSell =
-    "select ROUND(SUM(Total_Payable),2) AS sells_count from bill_information";
-  var todaySell =
-    "select ROUND(SUM(Total_Payable),2) AS sells_count_today from bill_information where Date = CURDATE()";
-  var totalUser = "SELECT COUNT(*) AS users_count FROM user_information";
-  var totalBatch = "SELECT COUNT(*) AS batch_count FROM batch";
-  var totalMedicine = "SELECT COUNT(*) AS med_count FROM medicine_information";
-  var totalSupplier = "SELECT COUNT(*) AS sup_count FROM supplier";
-  var totalCategory = "SELECT COUNT(*) AS cat_count FROM category";
-  var totalGeneric = "SELECT COUNT(*) AS generic_count FROM drug_generic_name";
-  var totalManufac = "SELECT COUNT(*) AS manufac_count FROM manufacturer";
-
-  async.parallel(
-    [
-      function (callback) {
-        connection.query(totalSell, callback);
-      },
-      function (callback) {
-        connection.query(todaySell, callback);
-      },
-      function (callback) {
-        connection.query(totalUser, callback);
-      },
-      function (callback) {
-        connection.query(totalBatch, callback);
-      },
-      function (callback) {
-        connection.query(totalMedicine, callback);
-      },
-      function (callback) {
-        connection.query(totalSupplier, callback);
-      },
-      function (callback) {
-        connection.query(totalCategory, callback);
-      },
-      function (callback) {
-        connection.query(totalGeneric, callback);
-      },
-      function (callback) {
-        connection.query(totalManufac, callback);
-      },
-    ],
-    function (err, rows) {
-      if (err) {
-        console.log(err);
-      }
-
-      console.log(rows[0][0]);
-      console.log(rows[1][0]);
-      console.log(rows[2][0]);
-
-      // those data needs to be shown on view_admin.ejs
-      // Dashboard page requires those data
-      // NOT WORKING PROPERLY
-
-      res.render("view_admin", {
-        totalSell: rows[0][0],
-        todaySell: rows[1][0],
-        totalUser: rows[2][0],
-        totalBatch: rows[3][0],
-        totalMedicine: rows[4][0],
-        totalSupplier: rows[5][0],
-        totalCategory: rows[6][0],
-        totalGeneric: rows[7][0],
-        totalManufac: rows[8][0],
-        user: req.session.loggedUser,
-      });
-    }
-  );
+  res.render('view_register', data);
 });
+
+app.post('/user/create', function (req, res) {
+
+  //staff checking
+  // check_staff(req, res);
+  var connection = mysql.createConnection({
+      host: 'localhost',
+      user: 'root',
+      password: 'root',
+      database: 'pharmacy'
+  });
+  var user_infromation = {
+      Name: req.body.name,
+      Email: req.body.email,
+      Gender: req.body.gender,
+      Date_of_Birth: req.body.user_dob,
+      Age: req.body.age,
+      Address: req.body.address,
+      Contact: req.body.contact,
+      Blood_Group: req.body.blood_group,
+      Marital_Status: req.body.marital_status,
+      Join_Date: req.body.join_date,
+      Salary: req.body.salary,
+      Username: req.body.username
+  };
+  var user_access = {
+      Email: req.body.email,
+      Password: req.body.password,
+      Usertype: req.body.usertype,
+  };
+  console.log(user_infromation);
+  console.log(user_access);
+  var userAccessQuery = "INSERT INTO User_Access SET ?";
+  var userInfoQuery = "INSERT INTO User_Information SET ?";
+  db.getData(userAccessQuery, [user_access], function (err,rows) {
+      db.getData(userInfoQuery, [user_infromation], function (err, rows) {
+          res.redirect('/admin/usermanagement');
+      });
+  });
+});
+
 
 // routes
 app.use("/admin", admin);
+app.use("/retailer", retailer);
 
+app.use("/manufacturer", manufacturer);
 //start the server
 app.listen(5000, function () {
   console.log("server started at port 5000");

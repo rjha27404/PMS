@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> View Orders </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_manufacturer') %>
+			<%- include('../includes/aside_manufacturer') %>
+	<section>
+		<h1>Invoice Summary</h1>
+		<table class="table_infoFormat">
+		<!-- <tr>
+			<td> Invoice No: </td>
+			<td> <?php echo $row_selectInvoiceId['ID']+1; ?> </td>
+		</tr> -->
+		<tr>
+			<td> Invoice Date: </td>
+			<td> <%= invoice.date %> </td>
+		</tr>
+		<tr>
+			<td> Order No: </td>
+			<td> <%= invoice.order_id %> </td>
+		</tr>
+		<tr>
+			<td> Order Date: </td>
+			<td> <%= invoice.date %> </td>
+		</tr>
+		</table>
+		<form action="/manufacturer/insert_invoice/<%= invoice.order_id %>" method="POST" class="form">
+		<input type="hidden" name="order_id" value="<%= invoice.order_id %>" />
+		<table class="table_invoiceFormat">
+			<tr>
+				<th> Products </th>
+				<th> Unit Price </th>
+				<th> Quantity </th>
+				<th> Amount </th>
+			</tr>
+			<% product.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.pro_name %>
+					</td>
+					<td>
+						<%= item.pro_price %>
+					</td>
+					<td>
+						<%= item.quantity %>
+					</td>
+					<td>
+						<%= item.quantity * item.pro_price %>
+					</td>
+				</tr>
+				<% }) %>
+			<tr style="height:40px;vertical-align:bottom;">
+				<td colspan="3" style="text-align:right;"> Grand Total: </td>
+				<td>
+				<%= invoice.total_amount %>
+				</td>
+			</tr>
+		</table>
+			<br/><br />
+			Ship via: &nbsp;&nbsp;&nbsp;&nbsp;<select name="distributor">
+				<option value="" disabled selected>--- Select Delivery Agent ---</option>
+				<% distributor.forEach(function(item){ %>
+				
+					<option value="<%= item.dist_id %>">
+						<%= item.dist_name %>
+					</option>
+					<% }) %>
+				
+			</select> 
+			<br/><br >
+			comments: <textarea maxlength="400" name="txtComment" rows="5" cols="30"></textarea>
+			<br/> 
+			<input type="submit" value="Generate Invoice" class="submit_button" />
+			<!-- <span class="error_message">
+			<?php
+				if(isset($_SESSION['error'])) {
+					echo $_SESSION['error'];
+					unset($_SESSION['error']);
+				}
+			?>
+			</span> -->
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

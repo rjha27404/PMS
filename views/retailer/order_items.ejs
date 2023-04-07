@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Order Items </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_retailer') %>
+			<%- include('../includes/aside_retailer') %>
+	<section>
+		<h1>Order Items</h1>
+		<form action="/retailer/order/insert" method="POST" class="form">
+		<table class="table_displayData">
+			<tr>
+				<th> ID </th>
+				<th> Name </th>
+				<th> Price </th>
+				<th> Available </th>
+				<th> Quantity </th>
+				<th> Price </th>
+			</tr>
+			<% product.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.pro_id %>
+					</td>
+					<td>
+						<%= item.pro_name %>
+					</td>
+					<td>
+						<%= item.pro_price %>
+					</td>
+					
+					<td>
+									<% if(item.quantity){ %>
+										<%= item.quantity %>
+											<% }else{ %>
+												N/A
+												<% } %>
+								</td>
+								<td>
+									<input type="text" class="quantity" id="<%= item.pro_id %>" name="txtQuantity<%= item.pro_id %>"/> </td>
+								</td>
+								<td>
+									<div id="totalPrice<%= item.pro_id %>"></div>
+								</td>
+				</tr>
+				<% }) %>
+			
+			<tr>
+				<td colspan="5" style="text-align:right;"> Total Price: </td>
+				<td> <input type="text" size="10" id="txtFinalAmount" name="total_price" readonly="readonly" value="" /> </td>
+			</tr>
+		</table>
+		<input id="btnSubmit" type="submit" value="Post Order" class="submit_button" />
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+	<script type="text/javascript" src="/assets/js/jquery.js"> </script>
+	<script type="text/javascript" src="/assets/js/order_items.js"> </script>
+</body>
+</html>

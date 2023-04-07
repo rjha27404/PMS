@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Add Product </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_admin') %>
+			<%- include('../includes/aside_admin') %>
+	<section>
+		<h1>Add Product</h1>
+		<form action="/admin/product/create" method="POST" class="form">
+		<ul class="form-list">
+		<li>
+			<div class="label-block"> <label for="product:name">Product Name</label> </div>
+			<div class="input-box"> <input type="text" id="product:name" name="name" placeholder="Product Name"  required /> </div> <span class="error_message"><?php echo $nameErr; ?></span>
+		</li>
+		<li>
+			<div class="label-block"> <label for="product:price">Price</label> </div>
+			<div class="input-box"> <input type="text" id="product:price" name="price" placeholder="Price"  required /> </div> <span class="error_message"><?php echo $priceErr; ?></span>
+		</li>
+		<li>
+		<div class="label-block"> <label for="product:unit">Unit Type</label> </div>
+		<div class="input-box">
+		<select name="unit_type" id="product:unit">
+			<option value="" disabled selected>--- Select Unit ---</option>
+			<% unit.forEach(function(item){ %>
+			
+				<option value="<%= item.id %>">
+					<%= item.unit_name %>
+				</option>
+				<% }) %>
+			
+		 </select>
+		</div>
+		</li>
+		<li>
+		<div class="label-block"> <label for="product:category">Category</label> </div>
+		<div class="input-box">
+		<select name="category" id="product:category">
+			<option value="" disabled selected>--- Select Category ---</option>
+			<% category.forEach(function(item){ %>
+			
+				<option value="<%= item.cat_id %>">
+					<%= item.cat_name %>
+				</option>
+				<% }) %>
+		</select>
+		</div>
+		</li>
+		<li>
+			<div class="label-block"> <label for="product:stock">Stock Management</label> </div>
+			<input type="radio" name="stock" value="1">Enable
+			<input type="radio" name="stock" value="2">Disable
+		</li>
+		<li>
+			<div class="label-block"> <label for="product:description">Description</label> </div>
+			<div class="input-box"> <textarea type="text" id="product:description" name="description" placeholder="Description"></textarea> </div>
+		</li>
+		<li>
+			<input type="submit" value="Add Product" class="submit_button" /> <span class="error_message">  </span><span class="confirm_message"></span>
+		</li>
+		</ul>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

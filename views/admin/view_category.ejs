@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> View Category </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+	<script language="JavaScript">
+	function toggle(source) {
+		checkboxes = document.getElementsByName('chkId[]');
+		for(var i=0, n=checkboxes.length;i<n;i++) {
+			checkboxes[i].checked = source.checked;
+		}
+	}
+	</script>
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_admin') %>
+			<%- include('../includes/aside_admin') %>
+	<section>
+		<h1>View Category</h1>
+		<form action="" method="POST" class="form">
+		<table class="table_displayData">
+			<tr>
+				<!-- <th> <input type="checkbox" onClick="toggle(this)" /> </th> -->
+				<th>Sr. No.</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th> Edit </th>
+			</tr>
+			<% category.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.cat_id %>
+					</td>
+					<td>
+						<%= item.cat_name %>
+					</td>
+					<td>
+						<%= item.cat_details %>
+					</td>
+					<td>
+						<a href="/admin/category/del/<%= item.cat_id %>">
+							<span style="color: red;">X</span></a>&nbsp;
+						<a href="/admin/category/edit/<%= item.cat_id %>"><img src="/assets/images/edit.png" alt="edit" /></a>
+					</td>
+				</tr>
+				<% }) %>
+		</table>
+		<!-- <input type="submit" value="Delete" class="submit_button"/> -->
+		<a href="/admin/category/create"><input type="button" value="+ Add Category" class="submit_button"/></a>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

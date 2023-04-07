@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title> View Invoices </title>
+	<link rel="stylesheet" href="/assets/main_style.css">
+	<link rel="stylesheet" href="/assets/jquery-ui.css">
+	<script type="text/javascript" src="/assets/js/jquery.js"> </script>
+	<script src="/assets/js/jquery-ui.js"></script>
+	<script>
+  $(function() {
+    $( "#datepicker" ).datepicker({
+     changeMonth:true,
+     changeYear:true,
+     yearRange:"-100:+0",
+     dateFormat:"yy-mm-dd"
+  });
+  });
+  </script>
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_retailer') %>
+			<%- include('../includes/aside_retailer') %>
+	<section>
+		<h1>Invoices</h1>
+		<!-- <form action="" method="POST" class="form">
+		Search By: 
+		<div class="input-box">
+		<select name="cmbFilter" id="cmbFilter">
+		<option value="" disabled selected>-- Search By --</option>
+		<option value="invoiceId">  Invoice Id </option>
+		<option value="orderId"> Order ID </option>
+		<option value="date"> Date </option>
+		</select>
+		</div>
+		
+		<div class="input-box"> <input type="text" name="txtInvoiceId" id="txtInvoiceId" style="display:none;" /> </div>
+		<div class="input-box"> <input type="text" name="txtOrderId" id="txtOrderId" style="display:none;" /> </div>
+		<div class="input-box"> <input type="text" id="datepicker" name="txtDate" style="display:none;"/> </div>
+		<input type="submit" class="submit_button" value="Search" /> <span class="error_message">  </span>
+		</form> -->
+	
+		<form action="" method="POST" class="form">
+		<table class="table_displayData" style="margin-top:20px;">
+			<tr>
+				<th> Invoice ID </th>
+				<th> Date </th>
+				<th> Order ID </th>
+				<th> Total Amount </th>
+				<th> Details </th>
+			</tr>
+			<% totalOrder.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.invoice_id %>
+					</td>
+					<td>
+						<%= item.date %>
+					</td>
+					<td>
+						<%= item.order_id %>
+					</td>
+					<td>
+						<%= item.total_amount %>
+					</td>
+					<td>
+					
+						<a href="/retailer/invoice/view/<%= item.invoice_id %>">Details</a>
+					</td>
+				</tr>
+				<% }) %>
+			
+		</table>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+	<script type="text/javascript">
+		$('#cmbFilter').change(function() {
+			var selected = $(this).val();
+			if(selected == "invoiceId"){
+				$('#txtInvoiceId').show();
+				$('#txtOrderId').hide();
+				$('#datepicker').hide();
+			}
+			else if (selected == "orderId"){
+				$('#txtInvoiceId').hide();
+				$('#txtOrderId').show();
+				$('#datepicker').hide();
+			}
+			else if (selected == "date"){
+				$('#txtInvoiceId').hide();
+				$('#txtOrderId').hide();
+				$('#datepicker').show();
+			}
+		});
+	</script>
+</body>
+</html>

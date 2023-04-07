@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin: Home</title>
+    <link rel="stylesheet" href="/assets/main_style.css" />
+  </head>
+  <body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_manufacturer') %>
+			<%- include('../includes/aside_manufacturer') %>
+    <section>
+      <h1>Manage Stock</h1>
+      <form action="/manufacturer/manage_stock/edit" method="POST" class="form">
+        <table class="table_displayData" style="margin-top: 20px">
+          <tr>
+            <th>Product ID</th>
+            <th>Name</th>
+            <th>Unit</th>
+            <th>Quantity</th>
+			<th>Update Stock</th>
+          </tr>
+          <% stock.forEach(function(item){ %>
+
+          <tr>
+            <td><%= item.pro_id %></td>
+            <td><%= item.pro_name %></td>
+            <td><%= item.unit %></td>
+            <td><%= item.quantity %></td>
+			<td><a href="/manufacturer/manage_stock/edit/<%= item.pro_id %>"><img src="/assets/images/edit.png" alt="edit" /></a></td>	
+          </tr>
+          <% }) %>
+
+        </table>
+        <input
+          id="btnSubmit"
+          type="submit"
+          value="Update Stock"
+          class="submit_button"
+        />
+      </form>
+    </section>
+    <%- include('../includes/footer.ejs') %>
+  </body>
+</html>

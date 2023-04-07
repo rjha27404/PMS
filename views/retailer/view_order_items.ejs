@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title> View Orders </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_retailer') %>
+			<%- include('../includes/aside_retailer') %>
+	<section>
+		<h1>Order Details</h1>
+		<table class="table_infoFormat">
+			<tr>
+				<td> Order No: </td>
+				<td>
+					<%= items.order_id %>
+				</td>
+			</tr>
+			<tr>
+				<td> Status: </td>
+				<td>
+					<% if(items.status==1){ %>
+						Completed
+						<% }else {%>
+							Pending
+							<% } %>
+				</td>
+			</tr>
+			<tr>
+				<td> Date: </td>
+				<td>
+					<%= items.date %>
+				</td>
+			</tr>
+		</table>
+		<form action="" method="POST" class="form">
+			<table class="table_invoiceFormat">
+				<tr>
+					<th> Products </th>
+					<th> Unit Price </th>
+					<th> Quantity </th>
+					<th> Amount </th>
+				</tr>
+				<% product.forEach(function(item){ %>
+	
+					<tr>
+						<td>
+							<%= item.pro_name %>
+						</td>
+						<td>
+							<%= item.pro_price %>
+						</td>
+						<td>
+							<%= item.quantity %>
+						</td>
+						<td>
+							<%= item.quantity * item.pro_price %>
+						</td>
+					</tr>
+					<% }) %>
+	
+						<tr style="height:40px;vertical-align:bottom;">
+							<td colspan="3" style="text-align:right;"> Total Amount: </td>
+							<td>
+								<%= items.total_amount %>
+							</td>
+						</tr>
+			</table>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

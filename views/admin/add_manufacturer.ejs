@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Add Supplier </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_admin') %>
+			<%- include('../includes/aside_admin') %>
+	<section>
+		<h1>Add Supplier</h1>
+		<form action="/admin/manufacturer/create" method="POST" class="form">
+		<ul class="form-list">
+		<li>
+			<div class="label-block"> <label for="manufacturer:name">Name</label> </div>
+			<div class="input-box"> <input type="text" id="manufacturer:name" name="name" placeholder="Name" value="" required /> </div> <span class="error_message"></span>
+		</li>
+		<li>
+			<div class="label-block"> <label for="manufacturer:email">Email</label> </div>
+			<div class="input-box"> <input type="text" id="manufacturer:email" name="email" placeholder="Email" value="" required /> </div> <span class="error_message"></span>
+		</li>
+		<li>
+			<div class="label-block"> <label for="manufacturer:phone">Phone</label> </div>
+			<div class="input-box"> <input type="text" id="manufacturer:phone" name="phone" placeholder="Phone" value="" /> </div> <span class="error_message"></span>
+		</li>
+		<li>
+			<div class="label-block"> <label for="manufacturer:username">Username</label> </div>
+			<div class="input-box"> <input type="text" id="manufacturer:username" name="username" placeholder="Username" value="" required /> </div> <span class="error_message"></span>
+		</li>
+		<li>
+			<div class="label-block"> <label for="manufacturer:password">Password</label> </div>
+			<div class="input-box"> <input type="password" id="manufacturer:password" name="password" placeholder="Password" required /> </div> <span class="error_message"></span>
+		</li>
+		<li>
+			<input type="submit" value="Add Supplier" class="submit_button" /> <span class="error_message"> <?php echo $requireErr; ?> </span><span class="confirm_message"> <?php echo $confirmMessage; ?> </span>
+		</li>
+		</ul>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> View Units </title>
+	<link rel="stylesheet" href="/assets/main_style.css">
+	<script language="JavaScript">
+		function toggle(source) {
+			checkboxes = document.getElementsByName('chkId[]');
+			for (var i = 0, n = checkboxes.length; i < n; i++) {
+				checkboxes[i].checked = source.checked;
+			}
+		}
+	</script>
+</head>
+
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_manufacturer') %>
+			<%- include('../includes/aside_manufacturer') %>
+				<section>
+					<h1>View Units</h1>
+					<form action="" method="POST" class="form">
+						<table class="table_displayData">
+							<tr>
+								<!-- <th> <input type="checkbox" onClick="toggle(this)" /> </th> -->
+								<th>Sr. No.</th>
+								<th>Name</th>
+								<th>Description</th>
+								<th> Edit </th>
+							</tr>
+							<% unit.forEach(function(item){ %>
+
+								<tr>
+									<td>
+										<%= item.id %>
+									</td>
+									<td>
+										<%= item.unit_name %>
+									</td>
+									<td>
+										<%= item.unit_details %>
+									</td>
+
+									<td>
+										<a href="/admin/unit/del/<%= item.id %>">
+											<span style="color: red;">X</span></a>&nbsp;
+										<a href="/admin/unit/edit/<%= item.id %>"><img src="/assets/images/edit.png"
+												alt="edit" /></a>
+									</td>
+								</tr>
+								<% }) %>
+
+						</table>
+						<!-- <input type="submit" value="Delete" class="submit_button" /> -->
+						<a href="/manufacturer/unit/create"><input type="button" value="+ Add Unit"
+								class="submit_button" /></a>
+					</form>
+				</section>
+				<%- include('../includes/footer.ejs') %>
+</body>
+
+</html>

@@ -26,21 +26,32 @@
                <a href="/admin/usermanagement"><i class="fa fa-fw fa-edit"></i> User Management</a>
            </li>
            <li>
-            <a href="/admin/batch/expiry"><i class="fa fa-fw fa-edit"></i>Send Reminder For Expiring Medicine</a>
+            <a href="/admin/batch/expiry"><i class="fa fa-fw fa-edit"></i><span>Send Reminder For Expiring Medicine</span></a>
         </li>
-          <% } else{ %>  
+          <% } else if(user.UserType == 'Admin'){ %>  
             <li><a style="font-size:18px;"><i class="fa fa-fw fa-shopping-cart"></i> Sales</a>
                 <ul class="nav child_menu">
                     <li><a href="/admin/sale">New Sale</a></li>
                     <li><a href="/admin/saleshistory">Sales History</a></li>
                     <li>
-            <a href="/admin/batch/expiry" style="color:white"><i class="fa fa-fw fa-edit"></i>Send Reminder For Expiring Medicine</a>
+            <a href="/admin/batch/expiry" style="color:white"><i class="fa fa-fw fa-edit"></i><span>Send Reminder For <br> Expiring Medicine</span></a>
 
                     </li>
                 </ul>
            </li>
-         <% } %>
-
+        <% } else{ %>
+            <li><a style="font-size:18px;"><i class="fa fa-fw fa-shopping-cart"></i> Sales</a>
+                <ul class="nav child_menu">
+                    <li><a href="/admin/sale">New Sale</a></li>
+                    <li><a href="/admin/saleshistory">Sales History</a></li>
+                    <li>
+                        <a href="/admin/batch/expiry" style="color:white"><i class="fa fa-fw fa-edit"></i><span>Send Reminder
+                                For <br> Expiring Medicine</span></a>
+        
+                    </li>
+                </ul>
+            </li>
+            <% } %>
 
     </ul>
 </div>

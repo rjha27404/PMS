@@ -6,7 +6,7 @@ module.exports = {
             host: 'localhost',
             user: 'root',
             password: 'root',
-            database: 'pharmacy'
+            database: 'supply_chain_mgmt'
         });
 
         connection.connect(function(err){

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> View Products </title>
+	<link rel="stylesheet" href="/assets/main_style.css">
+	<script language="JavaScript">
+		function toggle(source) {
+			checkboxes = document.getElementsByName('chkId[]');
+			for (var i = 0, n = checkboxes.length; i < n; i++) {
+				checkboxes[i].checked = source.checked;
+			}
+		}
+	</script>
+</head>
+
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_manufacturer') %>
+			<%- include('../includes/aside_manufacturer') %>
+				<section>
+					<h1>View Products</h1>
+					<form action="" method="POST" class="form">
+						<table class="table_displayData">
+							<tr>
+								<!-- <th> <input type="checkbox" onClick="toggle(this)" /> </th> -->
+								<th> Code </th>
+								<th> Name </th>
+								<th> Price </th>
+								<th> Unit </th>
+								<th> Category </th>
+								<th> Quantity </th>
+								<th> Edit </th>
+							</tr>
+							<% product.forEach(function(item){ %>
+
+								<tr>
+									<td>
+										<%= item.pro_id %>
+									</td>
+									<td>
+										<%= item.pro_name %>
+									</td>
+									<td>
+										<%= item.pro_price %>
+									</td>
+									<td>
+										<%= item.unit %>
+									</td>
+									<td>
+										<%= item.pro_cat %>
+									</td>
+									<td>
+										<% if(item.quantity){ %>
+											<%= item.quantity %>
+												<% }else{ %>
+													N/A
+													<% } %>
+									</td>
+									<td>
+										<a href="/manufacturer/product/del/<%= item.pro_id %>">
+											<span style="color: red;">X</span></a>&nbsp;
+										<a href="/manufacturer/product/edit/<%= item.pro_id %>"><img
+												src="/assets/images/edit.png" alt="edit" /></a>
+									</td>
+								</tr>
+								<% }) %>
+
+						</table>
+						<input type="submit" value="Delete" class="submit_button" />
+					</form>
+				</section>
+				<%- include('../includes/footer.ejs') %>
+</body>
+
+</html>

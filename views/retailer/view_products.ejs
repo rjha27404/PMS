@@ -1,0 +1,70 @@
+<?php
+	include("../includes/config.php");
+	session_start();
+	if(isset($_SESSION['retailer_login'])) {
+			$query_selectProducts = "SELECT * FROM products,categories,unit WHERE products.pro_cat=categories.cat_id AND products.unit=unit.id ORDER BY pro_id";
+			$result_selectProducts = mysqli_query($con,$query_selectProducts);
+		}
+		else {
+			header('Location:../index.php');
+		}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+	<title> View Products </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_retailer') %>
+			<%- include('../includes/aside_retailer') %>
+	<section>
+		<h1>View Products</h1>
+		<form action="" method="POST" class="form">
+		<table class="table_displayData">
+			<tr>
+				<th> ID </th>
+				<th> Name </th>
+				<th> Price </th>
+				<!-- <th> Unit </th> -->
+				<th> Category </th>
+			</tr>
+			<% product.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.pro_id %>
+					</td>
+					<td>
+						<%= item.pro_name %>
+					</td>
+					<td>
+						<%= item.pro_price %>
+					</td>
+					<!-- <td>
+						<%= item.unit %>
+					</td> -->
+					<td>
+						<%= item.pro_cat %>
+					</td>
+					<!-- <td>
+						<% if(item.quantity){ %>
+							<%= item.quantity %>
+								<% }else{ %>
+									N/A
+									<% } %>
+					</td>
+					<td>
+						<a href="/retailer/product/del/<%= item.pro_id %>">
+							<span style="color: red;">X</span></a>&nbsp;
+						<a href="/retailer/product/edit/<%= item.pro_id %>"><img src="/assets/images/edit.png" alt="edit" /></a>
+					</td> -->
+				</tr>
+				<% }) %>
+		</table>
+		</form>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

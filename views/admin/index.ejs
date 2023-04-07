@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Admin: Home </title>
+	<link rel="stylesheet" href="/assets/main_style.css" >
+</head>
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_admin') %>
+			<%- include('../includes/aside_admin') %>
+	
+	<section>
+		<h1>Welcome Admin</h1>
+		<article>
+			<h2>Recently Added Distributor</h2>
+			<table class="table_displayData">
+				<tr>
+					<th>Sr. No.</th>
+					<th>Username</th>
+					<th>Area Code</th>
+					<th>Phone</th>
+					<th>Email</th>
+					<th>Address</th>
+				</tr>
+				<% totalRetailer.forEach(function(item){ %>
+						
+				<tr>
+					<td> <%= item.retailer_id %> </td>
+					<td> <%= item.username %> </td>
+					<td> <%= item.area_id %> </td>
+					<td> <%= item.phone %> </td>
+					<td> <%= item.email %> </td>
+					<td> <%= item.address %> </td>
+				</tr>
+				<% }) %>
+			</table>
+		</article>
+		
+		<article>
+			<h2>Recently Added Supplier</h2>
+			<table class="table_displayData">
+			<tr>
+				<th>Sr. No.</th>
+				<th>Name</th>
+				<th>Email</th>
+				<th>Phone</th>
+				<th>Username</th>
+			</tr>
+			<% totalManufacturer.forEach(function(item){ %>
+			
+				<tr>
+				
+						<td>
+							<%= item.man_id %>
+						</td>
+					
+					<td>
+						<%= item.man_name %>
+					</td>
+					<td>
+						<%= item.man_email %>
+					</td>
+					<td>
+						<%= item.man_phone %>
+					</td>
+					<td>
+						<%= item.username %>
+					</td>
+					
+				</tr>
+				<% }) %>
+		</table>
+		</article>
+		
+		<article>
+			<h2>Recently Added Products</h2>
+			<table class="table_displayData">
+			<tr>
+				<th> Code </th>
+				<th> Name </th>
+				<th> Price </th>
+				<th> Unit </th>
+				<th> Category </th>
+				<th> Quantity </th>
+			</tr>
+			<% totalProduct.forEach(function(item){ %>
+			
+				<tr>
+					<td>
+						<%= item.pro_id %>
+					</td>
+					<td>
+						<%= item.pro_name %>
+					</td>
+					<td>
+						<%= item.pro_price %>
+					</td>
+					<td>
+						<%= item.unit %>
+					</td>
+					<td>
+						<%= item.pro_cat %>
+					</td>
+					<td>
+						<%= item.quantity %>
+					</td>
+				</tr>
+				<% }) %>
+		</table>
+		</article>
+	</section>
+	<%- include('../includes/footer.ejs') %>
+</body>
+</html>

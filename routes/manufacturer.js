@@ -5,7 +5,6 @@ var db = require('../db');
 var async = require('async');
 var mysql = require('mysql2');
 const sendMail = require("../emailService");
-
 router.use(bodyParser.urlencoded({
     extended: false
 }));
@@ -15,7 +14,7 @@ router.use(bodyParser.json());
 function check_staff(req, res) {
     user = req.session.loggedUser;
     if (user.UserType === 'staff' || user.UserType === 'Staff') {
-        res.redirect('/admin');
+        res.redirect('/manufacturer');
         return;
     }
 }
@@ -37,22 +36,19 @@ router.get('/', function (req, res) {
         password: 'root',
         database: 'supply_chain_mgmt'
     });
-
-    var totalProduct = "select * from products limit 5";
-    var totalRetailer = "select * from retailer limit 5";
-    var totalManufacturer = "SELECT * FROM manufacturer limit 5";
+    // console.log(req.session.loggedUser.username+"Hello");
+    var profile = `select * from manufacturer where username=?`;
+    var totalOrder = "select * from orders limit 5";
 
 
     async.parallel([
         function (callback) {
-            connection.query(totalProduct, callback)
+            connection.query(profile, req.session.loggedUser.username, callback)
         },
         function (callback) {
-            connection.query(totalRetailer, callback)
+            connection.query(totalOrder, callback)
         },
-        function (callback) {
-            connection.query(totalManufacturer, callback)
-        }
+        
     ], function (err, rows) {
 
 
@@ -61,21 +57,21 @@ router.get('/', function (req, res) {
         // console.log(rows[2][0]);
 
 
-        // those data needs to be shown on view_admin.ejs
+        // those data needs to be shown on view_manufacturer.ejs
         // Dashboard page requires those data
         // NOT WORKING PROPERLY
-
-        res.render('admin/index.ejs', {
-            'title': "Admin: Home",
-            'totalProduct': rows[0][0],
-            'totalRetailer': rows[1][0],
-            'totalManufacturer': rows[2][0],
+        console.log(rows[0][0]);
+        console.log(rows[1][0]);
+        res.render('manufacturer/index.ejs', {
+            'title': "Manufacturer: Home",
+            'profile': rows[0][0],
+            'totalOrder': rows[1][0],
             'user': req.session.loggedUser
         });
     });
 
 
-    // res.render('view_admin', {
+    // res.render('view_manufacturer', {
     //     user: req.session.loggedUser
     // });
 });
@@ -88,16 +84,28 @@ router.get('/logout', function (req, res) {
     res.redirect('/');
 });
 
-router.get("/invoice", function (req, res) {
-    var query = "SELECT * FROM invoice,retailer,area WHERE invoice.retailer_id=retailer.retailer_id AND retailer.area_id=area.area_id";
-    console.log(req.session.loggedUser.username);
-    db.getData(query, null, function (rows1) {
+router.get("/order", function (req, res) {
+    var query = "SELECT * FROM orders";
+    db.getData(query, null, function (rows) {
         var data = {
-            'totalOrder': rows1,
+            'totalOrder': rows,
             'user': req.session.loggedUser
         };
         console.log(data);
-        res.render('admin/view_invoice', data);
+        res.render('manufacturer/view_orders', data);
+    });
+})
+
+router.get("/invoice", function (req, res) {
+    var query = "SELECT * FROM invoice,retailer,area WHERE invoice.retailer_id=retailer.retailer_id AND retailer.area_id=area.area_id";
+    console.log(req.session.loggedUser.username);
+        db.getData(query, null, function (rows1) {
+            var data = {
+                'totalOrder': rows1,
+                'user': req.session.loggedUser
+            };
+            console.log(data);
+            res.render('manufacturer/view_invoice', data);
     });
 })
 
@@ -114,22 +122,12 @@ router.get("/invoice/view/:id", function (req, res) {
                 'total_amount': rows.total_amount,
                 'user': req.session.loggedUser
             };
-            res.render('admin/view_invoice_items', data);
+            res.render('manufacturer/view_invoice_items', data);
         });
     });
 });
 
-router.get("/order", function(req,res){
-    var query = "SELECT * FROM orders";
-    db.getData(query, null, function (rows) {
-        var data = {
-            'totalOrder': rows,
-            'user': req.session.loggedUser
-        };
-        console.log(data);
-        res.render('admin/view_orders', data);
-    });
-})
+
 
 router.get("/order/view/:id", function (req, res) {
     var query = "SELECT * FROM orders where order_id=?";
@@ -140,14 +138,274 @@ router.get("/order/view/:id", function (req, res) {
         db.getData(pquery, [id], function (rows1) {
             var data = {
                 'product': rows1,
-                'items':rows[0],
-                'total_amount':rows.total_amount,
+                'items': rows[0],
+                'total_amount': rows.total_amount,
                 'user': req.session.loggedUser
             };
-            res.render('admin/view_order_items', data);
+            res.render('manufacturer/view_order_items', data);
         });
     });
 })
+
+router.get("/confirm_order/:id", function (req, res) {
+    var query = "UPDATE orders SET approved=1 where order_id=?";
+
+    var query1 = "SELECT * FROM orders";
+
+    var id = req.params.id;
+    db.getData(query, [id], function (rows2) {
+        db.getData(query1, null, function (rows) {
+            var data = {
+                'totalOrder': rows,
+                'user': req.session.loggedUser
+            };
+            console.log(data);
+            res.render('manufacturer/view_orders', data);
+        });
+    });
+});
+
+router.get("/generate_invoice/:id", function (req, res) {
+    var pquery = "SELECT *,invoice_items.quantity as quantity FROM invoice,invoice_items,products WHERE invoice.invoice_id=? AND invoice_items.product_id=products.pro_id AND invoice_items.invoice_id=invoice.invoice_id";
+    var query = "SELECT * FROM invoice,retailer,distributor,area WHERE invoice_id=? AND invoice.retailer_id=retailer.retailer_id AND retailer.area_id=area.area_id AND invoice.dist_id=distributor.dist_id";
+    var dist= "SELECT * FROM distributor";
+    var id = req.params.id;
+    db.getData(query, [id], function (rows) {
+        db.getData(pquery, [id], function (rows1) {
+            db.getData(dist, [id], function (rows2) {
+                var data = {
+                    'product': rows1,
+                    'invoice': rows[0],
+                    'distributor':rows2,
+                    'total_amount': rows.total_amount,
+                    'user': req.session.loggedUser
+                };
+                res.render('manufacturer/generate_invoice', data);
+            });
+        });
+    });
+})
+
+router.get("/insert_invoice/:id", function (req, res) {
+    var order = "SELECT *,order_items.quantity AS q FROM orders,order_items,products WHERE order_items.order_id='$order_id' AND order_items.pro_id=products.pro_id AND order_items.order_id=orders.order_id";
+    var dist = "SELECT dist_id,dist_name FROM distributor";
+    var selectorder = "SELECT date,status FROM orders WHERE order_id='$order_id'";
+    var lastid = "SELECT LAST_INSERT_ID() AS ID FROM invoice";
+    var id = req.params.id;
+    db.getData(query, [id], function (rows2) {
+        db.getData(query1, null, function (rows) {
+            var data = {
+                'totalOrder': rows,
+                'user': req.session.loggedUser
+            };
+            console.log(data);
+            res.render('manufacturer/view_orders', data);
+        });
+    });
+})
+
+router.get('/manage_stock', function (req, res) {
+
+    //staff checking
+    // check_staff(req, res);
+
+    var id = req.params.id;
+    var query = "SELECT * FROM products,unit WHERE products.unit=unit.id AND quantity IS NOT NULL ";
+
+    db.getData(query, null, function (rows) {
+        var data = {
+            'stock': rows,
+            'user': req.session.loggedUser,
+            message: '',
+            message_type: '',
+            errors: ''
+        };
+        res.render('manufacturer/manage_stock', data);
+    });
+});
+router.get('/manage_stock/edit/:id', function (req, res) {
+
+    //staff checking
+    // check_staff(req, res);
+
+    var id = req.params.id;
+    var query = "SELECT * FROM products WHERE pro_id = ? ";
+
+    db.getData(query, [id], function (rows) {
+        var data = {
+            'product': rows[0],
+            'user': req.session.loggedUser,
+            message: '',
+            message_type: '',
+            errors: ''
+        };
+        res.render('manufacturer/update_stock', data);
+    });
+});
+
+router.post('/manage_stock/edit/:id', function (req, res) {
+    //staff checking
+    // check_staff(req, res);
+
+
+    //validations
+    req.checkBody('name', 'Name is required').notEmpty();
+    req.checkBody('pro_id', 'email is required').notEmpty();
+    req.checkBody('quantity', 'phone is required').notEmpty();
+
+    req.getValidationResult().then(function (result) {
+        if (!result.isEmpty()) {
+
+            var id = req.params.id;
+            var query = "SELECT * FROM products WHERE pro_id = ? ";
+
+            db.getData(query, [id], function (rows) {
+                var data = {
+                    'stock': rows[0],
+                    'user': req.session.loggedUser,
+                    message: '',
+                    message_type: '',
+                    errors: ''
+                };
+                res.render('manufacturer/update_stock', data);
+            });
+
+        } else {
+
+            var product = {
+                pro_name: req.body.name,
+                quantity: req.body.quantity,
+            };
+            var id = req.params.id;
+            var query = "UPDATE products SET ? WHERE pro_id = ?";
+            db.getData(query, [product, id], function (rows) {
+                // console.log(rows);
+                res.redirect('/manufacturer/manage_stock');
+            });
+
+        }
+
+    });
+
+});
+
+
+router.get('/profile/edit/:id', function (req, res) {
+
+    //staff checking
+    // check_staff(req, res);
+
+    var id = req.params.id;
+    var query = "SELECT * FROM manufacturer WHERE man_id = ? ";
+
+    db.getData(query, [id], function (rows) {
+        var data = {
+            'manufacturer': rows[0],
+            'user': req.session.loggedUser,
+            message: '',
+            message_type: '',
+            errors: ''
+        };
+        res.render('manufacturer/edit_profile', data);
+    });
+});
+
+router.post('/profile/edit', function (req, res) {
+
+    //staff checking
+    // check_staff(req, res);
+
+
+    //validations
+    req.checkBody('name', 'Name is required').notEmpty();
+    req.checkBody('email', 'email is required').notEmpty();
+    req.checkBody('phone', 'phone is required').notEmpty();
+
+    req.getValidationResult().then(function (result) {
+        if (!result.isEmpty()) {
+
+            var id = req.body.man_id;
+            var query = "SELECT * FROM manufacturer WHERE man_id = ? ";
+
+            db.getData(query, [id], function (rows) {
+                var data = {
+                    'manufacturer': rows[0],
+                    'user': req.session.loggedUser,
+                    message: '',
+                    message_type: '',
+                    errors: ''
+                };
+                res.render('manufacturer/edit_profile', data);
+            });
+
+        } else {
+
+            var manufacturer = {
+                man_name:req.body.name,
+                man_email:req.body.email,
+                man_phone:req.body.phone
+            };
+            var id = req.body.man_id;
+            var query = "UPDATE manufacturer SET ? WHERE man_id = ?";
+            db.getData(query, [manufacturer, id], function (rows) {
+                // console.log(rows);
+                res.redirect('/manufacturer');
+            });
+
+        }
+
+    });
+
+});
+
+router.get('/profile/edit', function (req, res) {
+
+    //staff checking
+    // check_staff(req, res);
+
+
+    //validations
+    req.checkBody('name', 'Name is required').notEmpty();
+    req.checkBody('email', 'email is required').notEmpty();
+    req.checkBody('phone', 'phone is required').notEmpty();
+
+    req.getValidationResult().then(function (result) {
+        if (!result.isEmpty()) {
+
+            var username = req.session.loggedUser.username;
+            var query = "SELECT * FROM manufacturer WHERE username = ? ";
+
+            db.getData(query, [username], function (rows) {
+                var data = {
+                    'manufacturer': rows[0],
+                    'user': req.session.loggedUser,
+                    message: '',
+                    message_type: '',
+                    errors: ''
+                };
+                res.render('manufacturer/edit_profile', data);
+            });
+
+        } else {
+
+            var manufacturer = {
+                name: req.body.name,
+                email: req.body.email,
+                phone: req.body.phone
+            };
+            var username = req.session.loggedUser.username;
+            console.log("Hey"+username);
+            var query = "UPDATE manufacturer SET ? WHERE username = ? ";
+            db.getData(query, [manufacturer, username], function (rows) {
+                // console.log(rows);
+                res.redirect('/manufacturer');
+            });
+
+        }
+
+    });
+
+});
 
 router.get('/area', function (req, res) {
 
@@ -160,7 +418,7 @@ router.get('/area', function (req, res) {
             'area': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_area', data);
+        res.render('manufacturer/view_area', data);
     });
 });
 
@@ -175,7 +433,7 @@ router.get('/area/create', function (req, res) {
         errors: '',
         user: req.session.loggedUser
     }
-    res.render('admin/add_area', data);
+    res.render('manufacturer/add_area', data);
 });
 
 router.post('/area/create', function (req, res) {
@@ -189,7 +447,7 @@ router.post('/area/create', function (req, res) {
 
     req.getValidationResult().then(function (result) {
         if (!result.isEmpty()) {
-            res.render('admin/add_area', {
+            res.render('manufacturer/add_area', {
                 message: '',
                 message_type: '',
                 errors: result.array(),
@@ -205,7 +463,7 @@ router.post('/area/create', function (req, res) {
             var query = "INSERT INTO area SET ?";
             db.getData(query, [area], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/area');
+                res.redirect('/manufacturer/area');
             });
 
         }
@@ -231,7 +489,7 @@ router.get('/area/edit/:id', function (req, res) {
             message_type: '',
             errors: ''
         };
-        res.render('admin/edit_area', data);
+        res.render('manufacturer/edit_area', data);
     });
 });
 
@@ -261,7 +519,7 @@ router.post('/area/edit/:id', function (req, res) {
                     errors: result.array()
                 };
 
-                res.render('admin/edit_area', data);
+                res.render('manufacturer/edit_area', data);
             });
 
         } else {
@@ -272,9 +530,9 @@ router.post('/area/edit/:id', function (req, res) {
             };
             var id = req.params.id;
             var query = "UPDATE area SET ? WHERE area_id=?";
-            db.getData(query, [area,id], function (rows) {
+            db.getData(query, [area, id], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/area');
+                res.redirect('/manufacturer/area');
             });
 
         }
@@ -292,7 +550,7 @@ router.get('/area/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM area WHERE area_id = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/area');
+        res.redirect('/manufacturer/area');
     });
 });
 
@@ -309,7 +567,7 @@ router.get('/unit', function (req, res) {
             'unit': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_unit', data);
+        res.render('manufacturer/view_unit', data);
     });
 });
 
@@ -324,7 +582,7 @@ router.get('/unit/create', function (req, res) {
         errors: '',
         user: req.session.loggedUser
     }
-    res.render('admin/add_unit', data);
+    res.render('manufacturer/add_unit', data);
 });
 
 router.post('/unit/create', function (req, res) {
@@ -337,7 +595,7 @@ router.post('/unit/create', function (req, res) {
 
     req.getValidationResult().then(function (result) {
         if (!result.isEmpty()) {
-            res.render('admin/add_unit', {
+            res.render('manufacturer/add_unit', {
                 message: '',
                 message_type: '',
                 errors: result.array(),
@@ -353,7 +611,7 @@ router.post('/unit/create', function (req, res) {
             var query = "INSERT INTO unit SET ?";
             db.getData(query, [unit], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/unit');
+                res.redirect('/manufacturer/unit');
             });
 
         }
@@ -379,7 +637,7 @@ router.get('/unit/edit/:id', function (req, res) {
             message_type: '',
             errors: ''
         };
-        res.render('admin/edit_unit', data);
+        res.render('manufacturer/edit_unit', data);
     });
 });
 
@@ -407,7 +665,7 @@ router.post('/unit/edit/:id', function (req, res) {
                     errors: result.array()
                 };
 
-                res.render('admin/edit_unit', data);
+                res.render('manufacturer/edit_unit', data);
             });
 
         } else {
@@ -417,9 +675,9 @@ router.post('/unit/edit/:id', function (req, res) {
                 unit_details: req.body.details
             };
             var query = "UPDATE unit SET ? WHERE id=?";
-            db.getData(query, [unit,id], function (rows) {
+            db.getData(query, [unit, id], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/unit');
+                res.redirect('/manufacturer/unit');
             });
 
         }
@@ -437,7 +695,7 @@ router.get('/unit/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM unit WHERE id = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/unit');
+        res.redirect('/manufacturer/unit');
     });
 });
 
@@ -453,7 +711,7 @@ router.get('/category', function (req, res) {
             'category': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_category', data);
+        res.render('manufacturer/view_category', data);
     });
 });
 
@@ -468,7 +726,7 @@ router.get('/category/create', function (req, res) {
         errors: '',
         user: req.session.loggedUser
     }
-    res.render('admin/add_category', data);
+    res.render('manufacturer/add_category', data);
 });
 
 router.post('/category/create', function (req, res) {
@@ -481,7 +739,7 @@ router.post('/category/create', function (req, res) {
 
     req.getValidationResult().then(function (result) {
         if (!result.isEmpty()) {
-            res.render('admin/add_category', {
+            res.render('manufacturer/add_category', {
                 message: '',
                 message_type: '',
                 errors: result.array(),
@@ -497,7 +755,7 @@ router.post('/category/create', function (req, res) {
             var query = "INSERT INTO categories SET ?";
             db.getData(query, [category], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/category');
+                res.redirect('/manufacturer/category');
             });
 
         }
@@ -523,7 +781,7 @@ router.get('/category/edit/:id', function (req, res) {
             message_type: '',
             errors: ''
         };
-        res.render('admin/edit_category', data);
+        res.render('manufacturer/edit_category', data);
     });
 });
 
@@ -551,7 +809,7 @@ router.post('/category/edit/:id', function (req, res) {
                     errors: result.array()
                 };
 
-                res.render('admin/edit_category', data);
+                res.render('manufacturer/edit_category', data);
             });
 
         } else {
@@ -561,9 +819,9 @@ router.post('/category/edit/:id', function (req, res) {
                 cat_details: req.body.details
             };
             var query = "UPDATE categories SET ? WHERE cat_id=?";
-            db.getData(query, [category,id], function (rows) {
+            db.getData(query, [category, id], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/category');
+                res.redirect('/manufacturer/category');
             });
 
         }
@@ -581,7 +839,7 @@ router.get('/category/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM categories WHERE cat_id = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/category');
+        res.redirect('/manufacturer/category');
     });
 });
 
@@ -598,7 +856,7 @@ router.get('/manufacturer', function (req, res) {
             'manufacturer': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_manufacturer', data);
+        res.render('manufacturer/view_manufacturer', data);
     });
 });
 router.get('/manufacturer/create', function (req, res) {
@@ -608,7 +866,7 @@ router.get('/manufacturer/create', function (req, res) {
         errors: '',
         'user': req.session.loggedUser
     }
-    res.render('admin/add_manufacturer');
+    res.render('manufacturer/add_manufacturer');
 })
 router.post('/manufacturer/create', function (req, res) {
 
@@ -624,7 +882,7 @@ router.post('/manufacturer/create', function (req, res) {
     req.getValidationResult().then(function (result) {
 
         if (!result.isEmpty()) {
-            res.render('admin/index.ejs', {
+            res.render('manufacturer/index.ejs', {
                 message: '',
                 message_type: '',
                 errors: result.array(),
@@ -642,7 +900,7 @@ router.post('/manufacturer/create', function (req, res) {
             var query = "INSERT INTO manufacturer SET ?";
             db.getData(query, [manufacturer], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/manufacturer');
+                res.redirect('/manufacturer/manufacturer');
             });
 
         }
@@ -666,7 +924,7 @@ router.get('/manufacturer/edit/:id', function (req, res) {
             message_type: '',
             errors: ''
         };
-        res.render('admin/edit_manufacturer', data);
+        res.render('manufacturer/edit_manufacturer', data);
     });
 });
 
@@ -696,7 +954,7 @@ router.post('/manufacturer/edit/:id', function (req, res) {
                     message_type: '',
                     errors: ''
                 };
-                res.render('admin/view_manufacturer', data);
+                res.render('manufacturer/view_manufacturer', data);
             });
 
         } else {
@@ -710,7 +968,7 @@ router.post('/manufacturer/edit/:id', function (req, res) {
             };
             var query = "UPDATE manufacturer SET ? WHERE man_id = ?";
             db.getData(query, [manufacturer, id], function (rows) {
-                res.redirect('/admin/manufacturer');
+                res.redirect('/manufacturer/manufacturer');
             });
 
         }
@@ -728,7 +986,7 @@ router.get('/manufacturer/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM manufacturer WHERE man_id = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/manufacturer');
+        res.redirect('/manufacturer/manufacturer');
     });
 });
 
@@ -743,7 +1001,7 @@ router.get('/retailer', function (req, res) {
             'retailer': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_retailer', data);
+        res.render('manufacturer/view_retailer', data);
     });
 });
 router.get('/retailer/create', function (req, res) {
@@ -755,7 +1013,7 @@ router.get('/retailer/create', function (req, res) {
     }
     var query = "SELECT * FROM area";
     db.getData(query, null, function (rows) {
-        res.render('admin/add_retailer', { area: rows });
+        res.render('manufacturer/add_retailer', { area: rows });
     });
 })
 router.post('/retailer/create', function (req, res) {
@@ -775,7 +1033,7 @@ router.post('/retailer/create', function (req, res) {
         if (!result.isEmpty()) {
             var query = "SELECT * FROM area";
             db.getData(query, null, function (rows) {
-                res.render('admin/add_retailer', {
+                res.render('manufacturer/add_retailer', {
                     'area': rows,
                     message: '',
                     message_type: '',
@@ -797,7 +1055,7 @@ router.post('/retailer/create', function (req, res) {
             var query = "INSERT INTO retailer SET ?";
             db.getData(query, [retailer], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin/retailer');
+                res.redirect('/manufacturer/retailer');
             });
 
         }
@@ -824,7 +1082,7 @@ router.get('/retailer/edit/:id', function (req, res) {
                 message_type: '',
                 errors: ''
             };
-            res.render('admin/edit_retailer', data);
+            res.render('manufacturer/edit_retailer', data);
         });
     });
 });
@@ -859,7 +1117,7 @@ router.post('/retailer/edit/:id', function (req, res) {
                         message_type: '',
                         errors: ''
                     };
-                    res.render('admin/edit_retailer', data);
+                    res.render('manufacturer/edit_retailer', data);
                 });
             });
 
@@ -876,7 +1134,7 @@ router.post('/retailer/edit/:id', function (req, res) {
             };
             var query = "UPDATE retailer SET ? WHERE retailer_id = ?";
             db.getData(query, [retailer, id], function (rows) {
-                res.redirect('/admin/retailer');
+                res.redirect('/manufacturer/retailer');
             });
 
         }
@@ -894,7 +1152,7 @@ router.get('/retailer/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM retailer WHERE ID = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/retailer');
+        res.redirect('/manufacturer/retailer');
     });
 });
 
@@ -912,7 +1170,7 @@ router.get('/product', function (req, res) {
             'product': rows,
             'user': req.session.loggedUser
         };
-        res.render('admin/view_products', data);
+        res.render('manufacturer/view_products', data);
     });
 });
 router.get('/product/create', function (req, res) {
@@ -926,7 +1184,7 @@ router.get('/product/create', function (req, res) {
     var query2 = "SELECT * FROM unit";
     db.getData(query1, null, function (rows1) {
         db.getData(query2, null, function (rows2) {
-            res.render('admin/add_product.ejs', { category: rows1, unit: rows2 });
+            res.render('manufacturer/add_product.ejs', { category: rows1, unit: rows2 });
         });
     });
 })
@@ -944,7 +1202,7 @@ router.post('/product/create', function (req, res) {
     req.getValidationResult().then(function (result) {
 
         if (!result.isEmpty()) {
-            res.render('admin/index.ejs', {
+            res.render('manufacturer/index.ejs', {
                 message: '',
                 message_type: '',
                 errors: result.array(),
@@ -963,7 +1221,7 @@ router.post('/product/create', function (req, res) {
             var query = "INSERT INTO products SET ?";
             db.getData(query, [product], function (rows) {
                 // console.log(rows);
-                res.redirect('/admin');
+                res.redirect('/manufacturer');
             });
 
         }
@@ -995,7 +1253,7 @@ router.get('/product/edit/:id', function (req, res) {
                     message_type: '',
                     errors: ''
                 };
-                res.render('admin/edit_product', data);
+                res.render('manufacturer/edit_product', data);
             });
         });
     });
@@ -1019,7 +1277,7 @@ router.post('/product/edit/:id', function (req, res) {
         if (!result.isEmpty()) {
 
             var id = req.params.id;
-            var query = "SELECT * FROM products WHERE ID = ? ";
+            var query = "SELECT * FROM products WHERE pro_id = ? ";
 
             db.getData(query, [id], function (rows) {
                 var data = {
@@ -1029,7 +1287,7 @@ router.post('/product/edit/:id', function (req, res) {
                     message_type: '',
                     errors: ''
                 };
-                res.render('admin/edit_product', data);
+                res.render('manufacturer/edit_product', data);
             });
 
         } else {
@@ -1043,9 +1301,9 @@ router.post('/product/edit/:id', function (req, res) {
                 quantity: req.body.stock,
                 pro_desc: req.body.description
             };
-            var query = "UPDATE products SET ? WHERE ID = ?";
+            var query = "UPDATE products SET ? WHERE pro_id = ?";
             db.getData(query, [product, id], function (rows) {
-                res.redirect('/admin/product');
+                res.redirect('/manufacturer/product');
             });
 
         }
@@ -1063,25 +1321,9 @@ router.get('/product/del/:id', function (req, res) {
     // console.log(id);
     var query = "DELETE FROM products WHERE pro_id = ?";
     db.getData(query, [id], function (rows) {
-        res.redirect('/admin/product');
+        res.redirect('/manufacturer/product');
     });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 module.exports = router;

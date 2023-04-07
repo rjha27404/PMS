@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> View Invoice Details </title>
+	<link rel="stylesheet" href="/assets/main_style.css">
+	<script type="text/javascript">
+		function PrintDiv() {
+			document.getElementById("signature").style.display = "block";
+			document.getElementById("footer").style.display = "block";
+			var divToPrint = document.getElementById('divToPrint');
+			var popupWin = window.open('', '_blank', '');
+			popupWin.document.open();
+			popupWin.document.write('<html><body onload="window.print()">' + divToPrint.innerHTML + '</html>');
+			document.getElementById("signature").style.display = "none";
+			document.getElementById("footer").style.display = "none";
+			popupWin.document.close();
+		}
+	</script>
+</head>
+
+<body>
+	<%- include('../includes/header.ejs') %>
+		<%- include('../includes/nav_admin') %>
+			<%- include('../includes/aside_admin') %>
+				<section>
+					<h1 style="text-align:center;">Sales Invoice</h1>
+					<table class="table_infoFormat">
+						<tr>
+							<td><b> Invoice No: </b></td>
+							<td>
+								<%= invoice.invoice_id %>
+							</td>
+						</tr>
+						<tr>
+							<td><b> Order No: </b></td>
+							<td>
+								<%= invoice.order_id %>
+							</td>
+						</tr>
+						<tr>
+							<td><b> Retailer: </b></td>
+							<td>
+								<%= invoice.area_id %>
+							</td>
+						</tr>
+						<tr>
+							<td><b> Distributor: </b></td>
+							<td>
+								<%= invoice.dist_name %>
+							</td>
+						</tr>
+						<tr>
+							<td><b> Date: </b></td>
+							<td>
+								<%= invoice.date %>
+							</td>
+						</tr>
+					</table>
+					<form action="" method="POST" class="form">
+						<table class="table_invoiceFormat" style="margin-top:50px;">
+							<tr>
+								<th style="padding-right:25px;"> Sr. No. </th>
+								<th style="padding-right:150px;"> Products </th>
+								<th style="padding-right:30px;"> Unit Price </th>
+								<th style="padding-right:30px;"> Quantity </th>
+								<th> Amount </th>
+							</tr>
+							<% product.forEach(function(item){ %>
+
+								<tr>
+									<td>
+										<%= item.pro_id %>
+									</td>
+									<td>
+										<%= item.pro_name %>
+									</td>
+									<td>
+										<%= item.pro_price %>
+									</td>
+
+									<td>
+										<% if(item.quantity){ %>
+											<%= item.quantity %>
+												<% }else{ %>
+													N/A
+													<% } %>
+									</td>
+									<td>
+										<div id="totalPrice<%= item.pro_id %>">
+											<%= item.quantity * item.pro_price %>
+										</div>
+									</td>
+								</tr>
+								<% }) %>
+
+									<tr style="height:40px;vertical-align:bottom;">
+										<td colspan="4" style="text-align:right;"><b> Grand Total: </b></td>
+										<td>
+										<td>
+											<%= invoice.total_amount %>
+										</td>
+										</td>
+									</tr>
+						</table><br /><br />
+						<!-- <b>Comments:</b> <br/> <?php echo $rowSelectInvoice['comments']; ?> -->
+					</form>
+				</section>
+				<%- include('../includes/footer.ejs') %>
+</body>
+
+</html>
